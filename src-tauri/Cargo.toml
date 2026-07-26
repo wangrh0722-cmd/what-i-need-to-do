@@ -1,0 +1,18 @@
+[package]
+name = "today-todo"
+version = "0.1.0"
+description = "今日事项 · 四象限待办"
+edition = "2021"
+rust-version = "1.77"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-global-shortcut = "2"
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true

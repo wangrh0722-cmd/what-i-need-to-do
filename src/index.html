@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>热乎's to do list</title>
+<style>
+  :root {
+    --paper: #fffdf7;
+    --rule: #f2ede1;
+    --ink: #6b5d54;
+    --ink-soft: #a79a8f;
+    --ink-mute: #c8bcb0;
+    --line: #eee4d5;
+    --line-strong: #ded1be;
+    /* 重点色：树莓红 */
+    --accent: #e25e65;
+    --accent-soft: #eeaab0;
+    /* 四象限（浅）：玫瑰 / 奶油黄 / 天蓝 / 淡粉 */
+    --q1: #ee8f96; --q1b: #fbe2e3;
+    --q2: #f0d489; --q2b: #fdf3d7;
+    --q3: #93c9e8; --q3b: #e7f4fb;
+    --q4: #f6bcc1; --q4b: #ffeef0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+      "Helvetica Neue", "Microsoft YaHei", system-ui, sans-serif;
+    color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased;
+    background-color: var(--paper);
+    background-image: repeating-linear-gradient(var(--paper), var(--paper) 33px, var(--rule) 33px, var(--rule) 34px);
+  }
+  .app { position: relative; max-width: 470px; margin: 0 auto; padding: 22px 16px 44px; }
+
+  /* 标题区背景见下方 .top */
+
+  .top {
+    position: relative;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 14px; border-radius: 12px; margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(150,125,100,.1);
+    background-color: #fbe9ec;
+  }
+  .top-left { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  #mascot { flex-shrink: 0; }
+  #mascot [data-m] { display: none; }
+  #mascot[data-mood="happy"] [data-m="happy"],
+  #mascot[data-mood="worried"] [data-m="worried"],
+  #mascot[data-mood="zen"] [data-m="zen"] { display: inline; }
+  .title { font-size: 14px; font-weight: 600; letter-spacing: .02em; display: flex; align-items: center; gap: 4px; }
+  .title svg { width: 12px; height: 12px; }
+  .date { font-size: 11px; color: var(--ink-soft); }
+  .mword { font-size: 10px; color: var(--accent); }
+  .viewtoggle { display: flex; background: #fff; border: 1.5px solid var(--line-strong); border-radius: 999px; overflow: hidden; flex-shrink: 0; }
+  .viewtoggle button { font-size: 12px; color: var(--ink-soft); background: none; border: none; padding: 5px 12px; cursor: pointer; }
+  .viewtoggle button.on { background: var(--accent); color: #fff; }
+
+  .add { margin-bottom: 20px; }
+  .qpick { display: flex; gap: 6px; margin-bottom: 9px; }
+  .qbtn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+    font-size: 11px; color: var(--ink-soft); background: #fff;
+    border: 1.5px solid var(--line); border-radius: 999px; padding: 6px 4px; cursor: pointer;
+  }
+  .qbtn:hover { border-color: var(--line-strong); }
+  .qbtn.on { border-color: var(--ink-soft); color: var(--ink); background: #fffef9; }
+  .qdot { width: 14px; height: 14px; border-radius: 5px; color: var(--ink); font-size: 9px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+  .addrow { display: flex; gap: 8px; }
+  .addrow input {
+    flex: 1; font-size: 12px; color: var(--ink); font-family: inherit; background: #fff;
+    border: 1.5px solid var(--line-strong); border-radius: 12px; padding: 10px 13px; outline: none;
+  }
+  .addrow input::placeholder { color: var(--ink-mute); }
+  .addrow input:focus { border-color: var(--accent); }
+  .addrow button {
+    font-size: 13px; color: #fff; background: var(--accent); border: none;
+    border-radius: 12px; padding: 0 18px; cursor: pointer; font-family: inherit;
+  }
+  .addrow button:hover { filter: brightness(.97); }
+  .hint2 { font-size: 11px; color: var(--ink-soft); margin-top: 8px; line-height: 1.7; }
+  .hint2 code { background: #fce0e2; color: #c0525a; border-radius: 5px; padding: 0 5px; }
+  .hint2 b { color: var(--ink); font-weight: 600; }
+
+  .check {
+    width: 18px; height: 18px; border: 2px solid var(--line-strong); border-radius: 7px;
+    flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; background: #fff;
+  }
+  .check:hover { border-color: var(--accent-soft); }
+  .check.done { background: var(--accent); border-color: var(--accent); color: #fff; font-size: 12px; }
+
+  .qchip {
+    border: none; color: var(--ink); font-weight: 600; cursor: pointer; flex-shrink: 0; padding: 0;
+    display: flex; align-items: center; justify-content: center; transition: transform .1s;
+  }
+  .qchip:hover { transform: scale(1.12); }
+  .row .qchip { width: 18px; height: 18px; border-radius: 6px; font-size: 10px; margin-top: 1px; }
+  .crow .qchip { width: 15px; height: 15px; border-radius: 5px; font-size: 9px; margin-top: 1px; }
+
+  .delay { display: inline-block; font-size: 10px; padding: 1px 8px; border-radius: 999px; background: #fbf0dd; color: #b08a3c; }
+  .delay.hot { background: #fce1e3; color: #d0525a; font-weight: 600; }
+
+  .iconbtn {
+    background: none; border: none; cursor: pointer; flex-shrink: 0; line-height: 1;
+    padding: 2px 4px; font-size: 13px; color: var(--ink-mute); opacity: 0; transition: opacity .12s;
+  }
+  .row:hover .iconbtn, .crow:hover .iconbtn { opacity: 1; }
+  .iconbtn:hover { color: var(--ink); }
+
+  .edit-input {
+    width: 100%; font-size: 14px; color: var(--ink); font-family: inherit;
+    border: none; border-bottom: 2px solid var(--accent); outline: none; padding: 0 0 2px; background: none;
+  }
+  .crow .edit-input { font-size: 12px; }
+
+  .list { background: #fffef9; border: 1.5px solid var(--line); border-radius: 14px; padding: 4px 12px; }
+  .row { display: flex; align-items: flex-start; gap: 11px; padding: 11px 2px; border-bottom: 1.5px dashed var(--line); }
+  .row:last-child { border-bottom: none; }
+  .row .check { margin-top: 1px; }
+  .body { flex: 1; min-width: 0; }
+  .task { font-size: 14px; color: var(--ink); word-break: break-word; cursor: text; }
+  .row.done .task, .crow.done .ctask { color: var(--ink-mute); text-decoration: line-through; }
+  .delay-wrap { margin-top: 3px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+  .cell {
+    position: relative; padding: 16px 12px 12px; min-height: 104px;
+    border: 1.5px solid var(--line); border-radius: 14px;
+    box-shadow: 0 2px 7px rgba(150,125,100,.09);
+  }
+  .cell:nth-child(1) { background: var(--q1b); }
+  .cell:nth-child(2) { background: var(--q2b); }
+  .cell:nth-child(3) { background: var(--q3b); }
+  .cell:nth-child(4) { background: var(--q4b); }
+  .cell::before {
+    content: ""; position: absolute; top: -7px; left: 16px; width: 50px; height: 15px;
+    transform: rotate(-5deg); opacity: .9; border-radius: 2px; pointer-events: none;
+    box-shadow: 0 1px 2px rgba(150,125,100,.12); background-repeat: repeat;
+  }
+  /* 每条胶带一种花样，更密、更随意 */
+  .cell:nth-child(1)::before {            /* 波点·密 */
+    background-color: #fbdfe4;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cg fill='%23ffffff'%3E%3Ccircle cx='3' cy='4' r='1.6'/%3E%3Ccircle cx='11' cy='2' r='1.2'/%3E%3Ccircle cx='8' cy='9' r='1.9'/%3E%3Ccircle cx='14' cy='12' r='1.3'/%3E%3Ccircle cx='4' cy='13' r='1.4'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 16px 16px;
+  }
+  .cell:nth-child(2)::before {            /* 格子·密 */
+    background-color: #fbf0d6;
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0 3px, rgba(224,176,104,.42) 3px 6px),
+      repeating-linear-gradient(90deg, transparent 0 3px, rgba(224,176,104,.42) 3px 6px);
+  }
+  .cell:nth-child(3)::before {            /* 星星·密 */
+    background-color: #e2f0fb;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Cg fill='%23ffffff'%3E%3Cpath transform='translate(3,3) scale(.6)' d='M6.5 0L8 4.5L13 5L9 8L10 13L6.5 10L3 13L4 8L0 5L5 4.5Z'/%3E%3Cpath transform='translate(11,9) scale(.42)' d='M6.5 0L8 4.5L13 5L9 8L10 13L6.5 10L3 13L4 8L0 5L5 4.5Z'/%3E%3Ccircle cx='15' cy='3' r='1'/%3E%3Ccircle cx='2' cy='14' r='1'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 18px 18px;
+  }
+  .cell:nth-child(4)::before {            /* 斜条纹·密 */
+    background-color: #efe6f7;
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.75) 0 2px, transparent 2px 6px);
+  }
+  .cell-head { display: flex; align-items: center; gap: 6px; margin-bottom: 9px; }
+  .cell-head .htag { width: 16px; height: 16px; font-size: 9px; font-weight: 600; border-radius: 5px; color: var(--ink); display: flex; align-items: center; justify-content: center; }
+  .cell-head .clabel { font-size: 11px; color: var(--ink); font-weight: 600; }
+  .cell-head .ccount { font-size: 10px; color: var(--ink-soft); margin-left: auto; background: #fff; border-radius: 999px; padding: 0 6px; }
+  .crow { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+  .crow .check { width: 15px; height: 15px; margin-top: 1px; border-radius: 6px; }
+  .crow .check.done { font-size: 10px; }
+  .cbody { flex: 1; min-width: 0; }
+  .ctask { font-size: 12px; color: var(--ink); word-break: break-word; line-height: 1.4; cursor: text; }
+  .cbody .delay { margin-top: 3px; }
+  .cell-empty { font-size: 16px; color: rgba(150,130,110,.35); }
+
+  .empty { padding: 34px 0 26px; text-align: center; color: var(--ink-soft); font-size: 13px; }
+  .empty svg { display: block; margin: 0 auto 10px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes enterRow { from { opacity: 0; transform: translateY(-5px) scale(.98); } to { opacity: 1; transform: none; } }
+    .row.enter, .crow.enter { animation: enterRow .2s ease; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="top-left">
+      <img id="avatar" alt="头像" width="38" height="38" src="data:image/jpeg;base64,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" style="border-radius:50%; object-fit:cover; flex-shrink:0; border:2px solid #fff; box-shadow:0 1px 4px rgba(150,125,100,.25);">
+      <div>
+        <div class="title">热乎's to do list
+          <svg width="15" height="15" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1L8 6L13 7L8 8L7 13L6 8L1 7L6 6Z" fill="#e25e65"/></svg>
+        </div>
+        <div><span class="date" id="date"></span> <span class="mword" id="mascot-word"></span></div>
+      </div>
+    </div>
+    <div class="viewtoggle" id="viewtoggle">
+      <button data-view="grid" class="on">网格</button>
+      <button data-view="list">列表</button>
+    </div>
+  </div>
+
+  <div class="add">
+    <div class="qpick" id="qpick">
+      <button class="qbtn on" data-q="1"><span class="qdot" style="background:var(--q1)">1</span>重要·紧急</button>
+      <button class="qbtn" data-q="2"><span class="qdot" style="background:var(--q2)">2</span>重要·不急</button>
+      <button class="qbtn" data-q="3"><span class="qdot" style="background:var(--q3)">3</span>急·不重要</button>
+      <button class="qbtn" data-q="4"><span class="qdot" style="background:var(--q4)">4</span>都不是</button>
+    </div>
+    <div class="addrow">
+      <input id="input" type="text" placeholder="今天想做点什么呀～回车添加" autocomplete="off" autofocus>
+      <button id="btn-add">添加</button>
+    </div>
+    <div class="hint2">
+      开头输入 <code>!1</code> ~ <code>!4</code> 可直接归类，回车连续添加。<br>
+      点每条前面的<b>彩色数字</b>换象限；移上去点 <b>✎</b> 改名（也可双击）。
+    </div>
+  </div>
+
+  <div id="view"></div>
+</div>
+
+<script>
+// ---------- 存取 ----------
+const KEY = "eisenhower.tasks.v1";
+const VKEY = "eisenhower.view.v1";
+const mem = {};
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return mem[k] ?? null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch { mem[k] = v; } }
+};
+
+// ---------- 状态 ----------
+let state = {
+  tasks: load(),
+  view: store.get(VKEY) || "grid",
+  justAdded: null,
+  editing: null
+};
+const QUADRANTS = {
+  1: { label: "重要·紧急", color: "var(--q1)" },
+  2: { label: "重要·不急", color: "var(--q2)" },
+  3: { label: "急·不重要", color: "var(--q3)" },
+  4: { label: "都不是",    color: "var(--q4)" }
+};
+let selectedQ = 1;
+
+// ---------- 日期 ----------
+function ymd(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function effectiveToday() { return new Date(); }
+function todayStr() { return ymd(effectiveToday()); }
+function diffDays(a, b) { return Math.round((new Date(b+"T00:00:00") - new Date(a+"T00:00:00")) / 86400000); }
+function delayDays(t) { if (t.completed) return 0; const d = diffDays(t.firstDate, todayStr()); return d > 0 ? d : 0; }
+
+// ---------- 逻辑 ----------
+function load() { const raw = store.get(KEY); if (raw) { try { return JSON.parse(raw); } catch {} } return seedTasks(); }
+function save() { store.set(KEY, JSON.stringify(state.tasks)); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function seedTasks() {
+  const t = new Date();
+  const daysAgo = n => { const d = new Date(); d.setDate(t.getDate() - n); return ymd(d); };
+  return [
+    { id: uid(), title: "回复项目邮件",   quadrant: 1, firstDate: daysAgo(2), completed: false, completedAt: null },
+    { id: uid(), title: "确认本周排期", quadrant: 1, firstDate: daysAgo(0), completed: false, completedAt: null },
+    { id: uid(), title: "周报初稿",     quadrant: 2, firstDate: daysAgo(0), completed: false, completedAt: null },
+    { id: uid(), title: "整理会议纪要", quadrant: 2, firstDate: daysAgo(1), completed: false, completedAt: null },
+    { id: uid(), title: "预订会议室",   quadrant: 3, firstDate: daysAgo(4), completed: false, completedAt: null },
+    { id: uid(), title: "整理资料库",   quadrant: 4, firstDate: daysAgo(0), completed: false, completedAt: null }
+  ];
+}
+function parseInput(raw) {
+  let title = raw.trim(), q = selectedQ;
+  const m = title.match(/^!\s*([1-4])\s+(.*)$/);
+  if (m) { q = Number(m[1]); title = m[2].trim(); }
+  return { q, title };
+}
+function addTask(raw) {
+  const { q, title } = parseInput(raw);
+  if (!title) return;
+  const id = uid();
+  state.tasks.push({ id, title, quadrant: q, firstDate: todayStr(), completed: false, completedAt: null });
+  state.justAdded = id; save(); render(); state.justAdded = null;
+}
+function toggle(id) {
+  const t = state.tasks.find(x => x.id === id); if (!t) return;
+  t.completed = !t.completed; t.completedAt = t.completed ? new Date().toISOString() : null;
+  save(); render();
+}
+function remove(id) { state.tasks = state.tasks.filter(x => x.id !== id); save(); render(); }
+function cycleQuadrant(id) {
+  const t = state.tasks.find(x => x.id === id); if (!t) return;
+  t.quadrant = (t.quadrant % 4) + 1; save(); render();
+}
+function startEdit(id) { state.editing = id; render(); focusEdit(); }
+function commitEdit() {
+  const i = document.querySelector(".edit-input");
+  const editing = state.editing;
+  state.editing = null;
+  if (i && editing) {
+    const v = i.value.trim();
+    const t = state.tasks.find(x => x.id === editing);
+    if (t && v) t.title = v;
+    save();
+  }
+  render();
+}
+function focusEdit() { const i = document.querySelector(".edit-input"); if (i) { i.focus(); i.select(); } }
+
+function isTodayVisible(t) { if (!t.completed) return true; return t.completedAt && ymd(new Date(t.completedAt)) === todayStr(); }
+function sortTasks(list) {
+  return list.slice().sort((a, b) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    if (a.quadrant !== b.quadrant) return a.quadrant - b.quadrant;
+    return delayDays(b) - delayDays(a);
+  });
+}
+function escapeHtml(s) { return s.replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+function delayHtml(t) { const n = delayDays(t); return n > 0 ? `<span class="delay ${n >= 3 ? "hot" : ""}">已拖 ${n} 天</span>` : ""; }
+function titleHtml(t, cls) {
+  if (state.editing === t.id) return `<input class="edit-input" value="${escapeHtml(t.title)}">`;
+  return `<span class="${cls}" data-edit="${t.id}" title="双击改名">${escapeHtml(t.title)}</span>`;
+}
+
+function updateMascot(open) {
+  const w = document.getElementById("mascot-word");
+  if (!w) return;
+  if (open === 0) w.textContent = "全部搞定啦 ♡";
+  else if (open >= 6) w.textContent = "有点多，慢慢来～";
+  else w.textContent = `还有 ${open} 件，加油！`;
+}
+
+// ---------- 渲染 ----------
+function render() {
+  const d = effectiveToday();
+  const wk = ["日","一","二","三","四","五","六"][d.getDay()];
+  document.getElementById("date").textContent = `${d.getMonth()+1}月${d.getDate()}日 周${wk}`;
+  document.querySelectorAll("#viewtoggle button").forEach(b => b.classList.toggle("on", b.dataset.view === state.view));
+
+  const view = document.getElementById("view");
+  const visible = state.tasks.filter(isTodayVisible);
+  view.innerHTML = state.view === "grid" ? renderGrid(visible) : renderList(sortTasks(visible));
+  updateMascot(visible.filter(t => !t.completed).length);
+}
+
+const CAT_DOODLE = `<svg width="80" height="60" viewBox="0 0 80 60" aria-hidden="true">
+  <ellipse cx="42" cy="42" rx="26" ry="13" fill="#fff4f2" stroke="#cbb6ac" stroke-width="2.2"/>
+  <path d="M64 44 q11 -1 7 -15" fill="none" stroke="#cbb6ac" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="22" cy="31" r="13" fill="#fffaf9" stroke="#cbb6ac" stroke-width="2.2"/>
+  <path d="M12 23 l1 -8 l7 5 Z" fill="#fffaf9" stroke="#cbb6ac" stroke-width="2"/>
+  <path d="M32 23 l-1 -8 l-7 5 Z" fill="#fffaf9" stroke="#cbb6ac" stroke-width="2"/>
+  <path d="M16 31 q3 3 6 0" fill="none" stroke="#b0998c" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M24 31 q3 3 6 0" fill="none" stroke="#b0998c" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="17" cy="36" r="2.2" fill="#f4b0a8" opacity=".7"/>
+  <circle cx="29" cy="36" r="2.2" fill="#f4b0a8" opacity=".7"/>
+</svg>`;
+
+function renderList(tasks) {
+  if (tasks.length === 0) return `<div class="empty">${CAT_DOODLE}今天还没有事项，添加一条吧～</div>`;
+  const rows = tasks.map(t => {
+    const q = QUADRANTS[t.quadrant];
+    const enter = t.id === state.justAdded ? " enter" : "";
+    return `<div class="row ${t.completed ? "done" : ""}${enter}">
+      <div class="check ${t.completed ? "done" : ""}" data-toggle="${t.id}">${t.completed ? "✓" : ""}</div>
+      <button class="qchip" style="background:${q.color}" data-cycle="${t.id}" title="点击换象限">${t.quadrant}</button>
+      <div class="body">
+        ${titleHtml(t, "task")}
+        <div class="delay-wrap">${delayHtml(t)}</div>
+      </div>
+      <button class="iconbtn" data-editbtn="${t.id}" title="改名">✎</button>
+      <button class="iconbtn" data-del="${t.id}" title="删除">✕</button>
+    </div>`;
+  }).join("");
+  return `<div class="list">${rows}</div>`;
+}
+
+function renderGrid(tasks) {
+  const cells = [1, 2, 3, 4].map(q => {
+    const info = QUADRANTS[q];
+    const items = sortTasks(tasks.filter(t => t.quadrant === q));
+    const open = items.filter(t => !t.completed).length;
+    const rows = items.length === 0
+      ? `<div class="cell-empty">·</div>`
+      : items.map(t => {
+          const enter = t.id === state.justAdded ? " enter" : "";
+          return `<div class="crow ${t.completed ? "done" : ""}${enter}">
+            <div class="check ${t.completed ? "done" : ""}" data-toggle="${t.id}">${t.completed ? "✓" : ""}</div>
+            <button class="qchip" style="background:${info.color}" data-cycle="${t.id}" title="点击换象限">${t.quadrant}</button>
+            <div class="cbody">
+              ${titleHtml(t, "ctask")}
+              ${delayHtml(t) ? `<div>${delayHtml(t)}</div>` : ""}
+            </div>
+            <button class="iconbtn" data-editbtn="${t.id}" title="改名">✎</button>
+            <button class="iconbtn" data-del="${t.id}" title="删除">✕</button>
+          </div>`;
+        }).join("");
+    return `<div class="cell">
+      <div class="cell-head">
+        <span class="htag" style="background:${info.color}">${q}</span>
+        <span class="clabel">${info.label}</span>
+        ${open ? `<span class="ccount">${open}</span>` : ""}
+      </div>
+      ${rows}
+    </div>`;
+  }).join("");
+  return `<div class="grid">${cells}</div>`;
+}
+
+// ---------- 事件 ----------
+document.getElementById("qpick").addEventListener("click", e => {
+  const btn = e.target.closest(".qbtn"); if (!btn) return;
+  selectedQ = Number(btn.dataset.q);
+  document.querySelectorAll(".qbtn").forEach(b => b.classList.toggle("on", b === btn));
+});
+document.getElementById("viewtoggle").addEventListener("click", e => {
+  const btn = e.target.closest("button"); if (!btn) return;
+  state.view = btn.dataset.view; store.set(VKEY, state.view); render();
+});
+document.getElementById("btn-add").addEventListener("click", () => {
+  const input = document.getElementById("input");
+  addTask(input.value); input.value = ""; input.focus();
+});
+document.getElementById("input").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("btn-add").click();
+});
+
+const viewEl = document.getElementById("view");
+viewEl.addEventListener("click", e => {
+  const cy = e.target.closest("[data-cycle]");
+  const eb = e.target.closest("[data-editbtn]");
+  const tg = e.target.closest("[data-toggle]");
+  const dl = e.target.closest("[data-del]");
+  if (cy) { cycleQuadrant(cy.dataset.cycle); return; }
+  if (eb) { startEdit(eb.dataset.editbtn); return; }
+  if (tg) { toggle(tg.dataset.toggle); return; }
+  if (dl) { remove(dl.dataset.del); return; }
+});
+viewEl.addEventListener("dblclick", e => {
+  const el = e.target.closest("[data-edit]");
+  if (el) startEdit(el.dataset.edit);
+});
+viewEl.addEventListener("keydown", e => {
+  if (!state.editing) return;
+  if (e.key === "Enter") { e.preventDefault(); commitEdit(); }
+  else if (e.key === "Escape") { state.editing = null; render(); }
+});
+viewEl.addEventListener("focusout", e => {
+  if (state.editing && e.target.classList && e.target.classList.contains("edit-input")) commitEdit();
+});
+
+render();
+document.getElementById("input").focus();
+</script>
+</body>
+</html>
