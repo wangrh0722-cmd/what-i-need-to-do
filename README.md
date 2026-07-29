@@ -2,8 +2,7 @@
 
 一款基于四象限法则的 macOS 桌面待办应用：常驻系统托盘、快捷键随时呼出，未完成的事项不会在第二天消失，而是自动延续并标注「已拖 N 天」。
 
-
-![四象限网格视图](<img width="1184" height="1506" alt="demo" src="https://github.com/user-attachments/assets/38ce8371-73cb-40f2-9afa-ad0d4c6bbfe0" />)
+<img width="500" alt="四象限网格视图" src="https://github.com/user-attachments/assets/38ce8371-73cb-40f2-9afa-ad0d4c6bbfe0" />
 
 *网格视图：四个象限并列，一眼看清精力分布*
 
